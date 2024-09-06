@@ -14,9 +14,9 @@ app = Flask("Sentiment Analyzer")
 
 @app.route("/sentimentAnalyzer")
 def sent_analyzer():
-    ''' This code receives the text from the HTML interface and 
+    ''' This code receives the text from the HTML interface and
         runs sentiment analysis over it using sentiment_analysis()
-        function. The output returned shows the label and its confidence 
+        function. The output returned shows the label and its confidence
         score for the provided text.
     '''
     text = request.args.get("textToAnalyze")

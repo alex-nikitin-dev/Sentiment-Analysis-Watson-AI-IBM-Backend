@@ -1,45 +1,54 @@
-''' Executing this function initiates the application of sentiment
-    analysis to be executed over the Flask channel and deployed on
-    localhost:5000.
-'''
-# Import Flask, render_template, request from the flask pramework package
-# Import the sentiment_analyzer function from the package created
-from flask import Flask, render_template, request
-from SentimentAnalysis.sentiment_analysis import sentiment_analyzer
+"""
+This module provides a function to analyze sentiment of a given text
+using the Watson Sentiment Analysis API.
+"""
+
+import requests
+from typing import Dict, Optional
 
 
-# Initiate the flask app
-app = Flask("Sentiment Analyzer")
+def sentiment_analyzer(text_to_analyse: str) -> Dict[str, Optional[str]]:
+    """
+    Analyzes the sentiment of the provided text
+    using the Watson Sentiment Analysis API.
 
+    Parameters:
+        text_to_analyse (str): The text to analyze.
 
-@app.route("/sentimentAnalyzer")
-def sent_analyzer():
-    ''' This code receives the text from the HTML interface and 
-        runs sentiment analysis over it using sentiment_analysis()
-        function. The output returned shows the label and its confidence 
-        score for the provided text.
-    '''
-    text = request.args.get("textToAnalyze")
-    if not text:
-        return {"message": "Query parameter textToAnalyze is missing"}
-    res = sentiment_analyzer(text)
-    label = res["label"]
-    score = res["score"]
+    Returns:
+        Dict[str, Optional[str]]: A dictionary
+        containing the sentiment 'label' and 'score'.
+    """
+    # Define the URL for the sentiment analysis API
+    url = (
+        'https://sn-watson-sentiment-bert.labs.skills.network/'
+        'v1/watson.runtime.nlp.v1/NlpService/SentimentPredict'
+    )
+    # Create the payload with the text to be analyzed
+    myobj = {"raw_document": {"text": text_to_analyse}}
+    # Set the headers with the required model ID for the API
+    header = {"grpc-metadata-mm-model-id":
+              "sentiment_aggregated-bert-workflow_lang_multi_stock"}
+    # Initialize label and score to None
+    label = None
+    score = None
 
-    if label is None:
-        return "NLU server error occures"
+    try:
+        # Make a POST request to the API with the payload and headers
+        response = requests.post(url, json=myobj, headers=header, timeout=10)
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the response from the API
+            formatted_response = response.json()
+            # Extract the label and score from the response
+            label = formatted_response['documentSentiment']['label']
+            score = formatted_response['documentSentiment']['score']
+        else:
+            # Handle non-200 responses
+            print((f"Error: Received status code {response.status_code}."
+                   f" Response: {response.text}"))
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
 
-    return f"The given text has been identified as {label} with a score of {score}"
-
-
-@app.route("/")
-def render_index_page():
-    ''' This function initiates the rendering of the main application
-        page over the Flask channel
-    '''
-    return render_template("index.html")
-
-
-if __name__ == "__main__":
-    # This functions executes the flask app and deploys it on localhost:5000
-    app.run(host="0.0.0.0", port=5001)
+    # Return the label and score in a dictionary
+    return {'label': label, 'score': score}
