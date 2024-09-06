@@ -8,7 +8,7 @@ from flask import Flask, render_template, request
 from SentimentAnalysis.sentiment_analysis import sentiment_analyzer
 
 
-# Initiate the flask app : TODO
+# Initiate the flask app
 app = Flask("Sentiment Analyzer")
 
 
@@ -29,8 +29,7 @@ def sent_analyzer():
     if label is None:
         return "NLU server error occures"
 
-    return (f"The given text has been identified"
-            f" as {label} with a score of {score}")
+    return f"The given text has been identified as {label} with a score of {score}"
 
 
 @app.route("/")

@@ -1,0 +1,4 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/saenv/bin/python",
+    "python.terminal.activateEnvironment": true
+}
